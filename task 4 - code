@@ -1,0 +1,199 @@
+import java.io.*;
+import java.util.concurrent.*;
+
+class QuizApplication {
+    public static void main(String args[]) throws Exception {
+
+        QuizQuestion obj = new QuizQuestion();
+        obj.quizQuestion();
+
+    }
+}
+
+class QuizQuestion {
+
+    BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
+
+    // ===== ANSI Color Codes =====
+    public static final String RESET = "\u001B[0m";
+    public static final String GREEN = "\u001B[32m";
+    public static final String RED = "\u001B[31m";
+    public static final String YELLOW = "\u001B[33m";
+    public static final String CYAN = "\u001B[36m";
+    public static final String BLUE = "\u001B[34m";
+    public static final String MAGENTA = "\u001B[35m";
+    public static final String BOLD = "\u001B[1m";
+
+    public void quizQuestion() throws Exception {
+
+        String[] questions = {
+            "Java supports which feautre from given options ?",
+            "Which feature java doesnt support ?",
+            "What is the capital of india ?",
+            "Which keyword is used to inherit a class in Java ?",
+            "Which method is the starting point of a Java program ?"
+        };
+
+        String[][] options = {
+            {"POP", "interface", "oop", "inheritance"},
+            {"oops", "simple syntax ", "garbage colllector", "multiple inheirtance"},
+            {"newDelhi", "punjab", "maharashtra", "raipur"},
+            {"this", "super", "extends", "implements"},
+            {"start()", "main()", "run()", "execute()"}
+        };
+
+        int[] answer = {
+            1,
+            4,
+            1,
+            3,
+            2
+        };
+
+        int score = 0;
+        int correctAnswers = 0;
+        int wrongAnswers = 0;
+        int unansweredQuestions = 0;
+
+        //storing the starting time of the complete quiz
+        long quizStartTime = System.currentTimeMillis();
+
+        //creating a thread pool for giving a time limit for per questions
+        ExecutorService executor = Executors.newCachedThreadPool();
+
+        for (int i = 0; i < questions.length; i++) {
+
+            //starting time of the question
+            long starttime = System.currentTimeMillis();
+
+            System.out.println("\n" + CYAN + BOLD + "Question " + (i + 1) + ": " + questions[i] + RESET);
+
+            for (int j = 0; j < options[i].length; j++) {
+                System.out.println(YELLOW + (j + 1) + ". " + options[i][j] + RESET);
+            }
+
+            System.out.println(MAGENTA + "You have 10 seconds to answer." + RESET);
+            System.out.print(BLUE + "Enter your answer (1-4): " + RESET);
+
+            //creating a separate thread for taking user input
+            Future<Integer> futureAnswer = executor.submit(() -> {
+
+                String input = in.readLine();
+                return Integer.parseInt(input);
+
+            });
+
+            int userAnswer;
+
+            try {
+
+                //waiting for the user answer for maximum 10 seconds
+                userAnswer = futureAnswer.get(10, TimeUnit.SECONDS);
+
+                //ending time after user enters the answer
+                long endtime = System.currentTimeMillis();
+
+                //calculating the time taken by the user
+                long timeTaken = (endtime - starttime) / 1000;
+
+                //checking whether entered option is valid
+                while (userAnswer < 1 || userAnswer > 4) {
+
+                    System.out.println(RED + "Invalid option! Please choose an option between 1 and 4." + RESET);
+                    System.out.print(BLUE + "Enter your answer again: " + RESET);
+
+                    String input = in.readLine();
+                    userAnswer = Integer.parseInt(input);
+                }
+
+                System.out.println(CYAN + "You answered in " + timeTaken + " seconds." + RESET);
+
+            }
+
+            //handles the situation when the user does not answer within 10 seconds
+            catch (TimeoutException e) {
+
+                System.out.println(RED + "\nTime's Up!" + RESET);
+                System.out.println(RED + "You did not answer within 10 seconds." + RESET);
+
+                unansweredQuestions++;
+
+                //cancelling the task after the time limit
+                futureAnswer.cancel(true);
+
+                continue;
+
+            }
+
+            //handles the situation when the thread waiting for input is interrupted
+            catch (InterruptedException e) {
+
+                System.out.println(RED + "Input was interrupted." + RESET);
+
+                //cancelling the input task
+                futureAnswer.cancel(true);
+
+                //restoring the interrupted status of the current thread
+                Thread.currentThread().interrupt();
+
+                continue;
+            }
+
+            //handles the exception that occurs when the task running in the separate thread fails
+            catch (ExecutionException e) {
+                System.out.println(RED + "An error occurred while taking input." + RESET);
+                continue;
+            }
+
+            if (userAnswer == answer[i]) {
+                System.out.println(GREEN + "Congratulations! Your Ans is correct." + RESET);
+                score++;
+                correctAnswers++;
+            }
+            else {
+                System.out.println(RED + "Oops! Your Ans is Wrong." + RESET);
+                System.out.println(YELLOW + "The correct Ans is " + answer[i] + ": " + options[i][answer[i] - 1] + RESET);
+                wrongAnswers++;
+            }
+        }
+
+        //shutting down the thread pool
+        executor.shutdownNow();
+
+        //storing the ending time of the complete quiz
+        long quizEndTime = System.currentTimeMillis();
+
+        //calculating the total time taken for the quiz
+        long totalTime = (quizEndTime - quizStartTime) / 1000;
+
+        //calculating percentage
+        double percentage = ((double) score / questions.length) * 100;
+
+        // ================= QUIZ RESULT =================
+
+        System.out.println("\n" + CYAN + BOLD + "================================" + RESET);
+        System.out.println(CYAN + BOLD + "          QUIZ RESULT" + RESET);
+        System.out.println(CYAN + BOLD + "================================" + RESET);
+
+        System.out.println(GREEN + "Correct Answers   : " + correctAnswers + RESET);
+        System.out.println(RED + "Wrong Answers     : " + wrongAnswers + RESET);
+        System.out.println(YELLOW + "Unanswered        : " + unansweredQuestions + RESET);
+        System.out.println(BLUE + "Final Score       : " + score + "/" + questions.length + RESET);
+        System.out.println(MAGENTA + "Percentage        : " + String.format("%.2f", percentage) + "%" + RESET);
+        System.out.println(CYAN + "Total Quiz Time   : " + totalTime + " seconds" + RESET);
+
+        System.out.println(CYAN + "================================" + RESET);
+
+        //displaying performance according to score
+        if (percentage >= 80) {
+            System.out.println(GREEN + BOLD + "Excellent Performance! Keep it up!" + RESET);
+        }
+        else if (percentage >= 50) {
+            System.out.println(YELLOW + BOLD + "Good Performance! Keep Practicing!" + RESET);
+        }
+        else {
+            System.out.println(RED + BOLD + "Keep Practicing! You can improve!" + RESET);
+        }
+        System.out.println(CYAN + "\nThank You for participating in the Quiz!" + RESET);
+    }
+}

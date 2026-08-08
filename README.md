@@ -29,10 +29,10 @@ This project focuses on strengthening Java concepts such as **arrays, 2D arrays,
 
 ### 3) Timer & Multithreading
 - Implemented a **10-second time limit** for each question.
-- Used `ExecutorService` for multithreading.
-- Used `Future` to handle user input within the time limit.
+- Used ExecutorService for multithreading.
+- Used Future to handle user input within the time limit.
 - Added per-question time calculation.
-- Handled `TimeoutException`, `InterruptedException`, and `ExecutionException`.
+- Handled TimeoutException, InterruptedException, and ExecutionException.
 
 ### 4) Result & Interface Enhancement
 - Calculated correct, wrong, and unanswered questions.
@@ -67,8 +67,8 @@ This project focuses on strengthening Java concepts such as **arrays, 2D arrays,
 - Displays the correct answer for incorrect responses.
 - 10-second time limit for each question.
 - Per-question time calculation.
-- Multithreading using `ExecutorService`.
-- Time-controlled input using `Future`.
+- Multithreading using ExecutorService.
+- Time-controlled input using Future.
 - Exception handling for timeout and thread-related errors.
 - Calculates score, percentage, correct, wrong, and unanswered questions.
 - Displays total quiz completion time.
